@@ -3,7 +3,7 @@ const send=data=>parent.postMessage({ev3lab:true,...data},'*');
 pxsim.EV3Board.prototype.initAsync=function(msg){pxsim.BaseBoard.prototype.initAsync.call(this,msg);return Promise.resolve();};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function button(index,down){if(rt&&!rt.dead)rt.board.brickNode.buttonState.buttons[index].setPressed(down);}
-async function tap(index){button(index,true);await sleep(140);button(index,false);}
+async function tap(index,ticket){if(ticket!==sequence)return false;const owner=rt;button(index,true);await sleep(140);if(owner===rt)button(index,false);return ticket===sequence;}
 function stop(){sequence++;clearInterval(timer);if(rt){rt.kill();rt=null;}autoBusy=false;}
 function tick(){if(!rt||rt.dead)return;const now=performance.now(),dt=Math.min(40,Math.max(1,now-last));last=now;const motors=rt.board.getMotors();let before=motors.map(m=>m?m.angle:0);for(const m of motors)if(m)m.updateState(dt);
  if(!autoBusy)world.step(dt,(motors[1]?.angle||0)-(before[1]||0),(motors[2]?.angle||0)-(before[2]||0));
@@ -19,6 +19,6 @@ window.addEventListener('message',async e=>{if(e.source!==parent||!e.data.ev3lab
  if(d.type!=='run')return;
  try{stop();let ticket=sequence;world=new LabPhysics.Physics(d.track,d.config);let msg={type:'run',id:'ev3-lab',code:d.binary,boardDefinition:{},parts:[],fnArgs:{}};rt=new pxsim.Runtime(msg);await rt.board.initAsync(msg);rt.errorHandler=err=>send({type:'error',message:String(err)});rt.postError=err=>send({type:'error',message:String(err)});autoBusy=!!d.autoCalibration;
  rt.run(()=>{});last=performance.now();timer=setInterval(tick,10);send({type:'started'});
- if(d.autoCalibration){await sleep(1000);if(ticket!==sequence)return;world.place('black');send({type:'phase',message:'Калибровка: чёрная линия'});await sleep(150);await tap(0);await sleep(700);if(ticket!==sequence)return;world.place('white');send({type:'phase',message:'Калибровка: светлый фон'});await sleep(150);await tap(2);await sleep(700);if(ticket!==sequence)return;world.place('edge');send({type:'phase',message:'Датчик на краю · запуск'});await sleep(150);autoBusy=false;await tap(1);send({type:'phase',message:'Программа выполняется'});}
+ if(d.autoCalibration){await sleep(1000);if(ticket!==sequence)return;world.place('black');send({type:'phase',message:'Калибровка: чёрная линия'});await sleep(150);if(!await tap(0,ticket))return;await sleep(700);if(ticket!==sequence)return;world.place('white');send({type:'phase',message:'Калибровка: светлый фон'});await sleep(150);if(!await tap(2,ticket))return;await sleep(700);if(ticket!==sequence)return;world.place('edge');send({type:'phase',message:'Датчик на краю · запуск'});await sleep(150);autoBusy=false;if(!await tap(1,ticket))return;send({type:'phase',message:'Программа выполняется'});}
  }catch(err){send({type:'error',message:err.message||String(err)});stop();}});
 document.getElementById('runtime-status').textContent='EV3 ready';send({type:'ready'});

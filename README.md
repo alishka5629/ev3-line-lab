@@ -1,4 +1,9 @@
 # EV3 Line Lab
+
+[Open simulator](https://alishka5629.github.io/ev3-line-lab/)
+
+![EV3 Line Lab](docs/preview.jpg)
+
 A browser robotics workspace for SITE 1101. Eight track presets, 3D EV3-inspired robot with a Canvas 2D fallback, actual Microsoft MakeCode compiler and runtime, source editor, UF2 source import, automatic and manual calibration.
 
 ## Run
