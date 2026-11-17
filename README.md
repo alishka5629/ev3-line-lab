@@ -19,3 +19,8 @@ UF2 import recovers embedded MakeCode source and recompiles it, rather than emul
 
 ## Credits
 Microsoft pxt-ev3 1.4.41 and pxt-core (MIT); TypeScript (Apache-2.0); LZMA-JS (MIT); Three.js (MIT). Vendor assets are copied from pinned npm packages during build. This is an independent educational project, not affiliated with LEGO or Microsoft. LEGO and MINDSTORMS are trademarks of the LEGO Group.
+
+## Automatic startup
+The simulator instruments its bundled MakeCode text and button APIs only during automatic compilation. It reads resolved EV3 text prompts and current button waits, then places the sensor and presses the relevant button. It supports conventional UP/DOWN/ENTER, repeated ENTER and custom button orders with recognizable black/white/edge prompts. Programs without button calibration start on the right edge. Calibration geometry and code are never overwritten. Unknown startup conditions time out with an explanation; image-only prompts and external-input routines may require Laboratory mode. Manual compilation uses the original bundled libraries.
+
+The English interface offers Light and Dark themes. The selection is saved on this device. The track surface retains its physical black/white appearance in either theme.
