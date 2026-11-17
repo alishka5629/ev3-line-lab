@@ -11,7 +11,7 @@ Node 22+: `npm ci --ignore-scripts`, `npm run prepare-assets`, `npm run dev`.
 `npm test` checks the differential-drive model, compiles both programs with the official compiler and verifies compressed UF2 source extraction. `npm run build` creates a self-contained static distribution. GitHub Actions deploys it to Pages when Pages source is set to GitHub Actions.
 
 ## Operation
-Automatic mode replays UP / DOWN / ENTER on programs using this calibration protocol. Other programs start directly at the right edge. Manual mode loads the program and lets you place the sensor and press the brick buttons. Shift-click places the axle; Q/E rotate. Stop terminates the simulated program. LEFT is delivered to the program's button handler.
+Automatic mode reads program prompts and button waits to position the sensor and perform startup. Programs without a calibration wait start from the right edge. Unrecognized startup conditions show an explanation. Manual mode loads the program and lets you place the sensor and press the brick buttons. Shift-click places the axle; Q/E rotate. Stop terminates the simulated program. LEFT is delivered to the program's button handler.
 
 ## Limits
 Educational kinematic model, not a hardware-certified digital twin. Geometry, reflectance, noise and wheel slip are configurable; motor dynamics use the PXT EV3 simulator. Gyro angle derives from simulated rate. No rigid-body collision engine. The photographed laboratory track is approximate. Baku sprint is an original inspired layout, not a surveyed copy. Arbitrary intersections cannot be resolved by a single reflectance sensor without route policy.
