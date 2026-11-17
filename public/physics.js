@@ -1,6 +1,6 @@
 (function(root){
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function nearest(paths,x,y){let best={distance:Infinity,x:0,y:0,angle:0};for(const pts of paths)for(let i=1;i<pts.length;i++){let [ax,ay]=pts[i-1],[bx,by]=pts[i],dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy;if(!l)continue;let t=clamp(((x-ax)*dx+(y-ay)*dy)/l,0,1),xx=ax+t*dx,yy=ay+t*dy,d=Math.hypot(x-xx,y-yy);if(d<best.distance)best={distance:d,x:xx,y:yy,angle:Math.atan2(dy,dx)};}return best;}
+function nearest(paths,x,y){let best={distance:Infinity,x:0,y:0,angle:0};for(const pts of paths)for(let i=1;i<pts.length;i++){let ax=pts[i-1][0],ay=pts[i-1][1],bx=pts[i][0],by=pts[i][1],dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy;if(!l)continue;let t=clamp(((x-ax)*dx+(y-ay)*dy)/l,0,1),xx=ax+t*dx,yy=ay+t*dy,d=Math.hypot(x-xx,y-yy);if(d<best.distance){best.distance=d;best.x=xx;best.y=yy;best.angle=Math.atan2(dy,dx);}}return best;}
 class Physics {
  constructor(track,config={}){this.track=track;this.config={wheelDiameter:56,wheelbase:120,sensorOffset:45,lineWidth:18,black:8,white:65,noise:0,slip:0,...config};this.time=0;this.distance=0;this.yawRate=0;this.place('edge');}
  place(where){let a=this.track.paths[0][0],b=this.track.paths[0][1],h=Math.atan2(b[1]-a[1],b[0]-a[0]);let off=where==='black'?0:where==='white'?45:this.config.lineWidth/2;this.yaw=h;this.x=a[0]+off*Math.sin(h)-this.config.sensorOffset*Math.cos(h);this.y=a[1]-off*Math.cos(h)-this.config.sensorOffset*Math.sin(h);this.yawRate=0;}

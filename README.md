@@ -27,3 +27,6 @@ The English interface offers Light and Dark themes. The selection is saved on th
 
 ## Robot speaker
 Standard PXT EV3 audio APIs are bridged from the sandbox to Web Audio on the parent page. Run unlocks audio through a browser gesture. Tones retain the official PXT scheduler; Sound.play promises resolve when actual audio ends (or Stop cancels it), including while muted. Embedded WAV recordings and built-in effects are decoded locally. Mute/master volume are separate from program volume. Playback stops on reset, new run or tab hiding; asynchronous decoding cannot restart audio after Stop. The speaker output meter measures the rendered audio signal. Browser permissions or an unsupported codec may block audio; Enable audio shows a recovery path. External extensions and arbitrary file paths are not automatically audio assets. User recordings are never published with the site.
+
+## Rendering performance
+Robot visuals interpolate between telemetry packets; physics and sensor readings remain driven by motor simulation. Telemetry is displayed at 10 Hz, with LCD pixels sent only when changed, at most 10 Hz. The Canvas renderer coalesces redraws and resizes only on actual size changes. WebGL uses a persistent trail buffer, capped device pixel ratio and shadow map, and skips unchanged frames. Large editor changes are saved after a short debounce.
