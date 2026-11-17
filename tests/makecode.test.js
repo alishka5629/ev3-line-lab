@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),ev3=fs.realpathSync('node_modules/pxt-ev3'),core=fs.realpathSync('node_modules/pxt-core');
+const sandbox={console,setTimeout,clearTimeout,setInterval,clearInterval,performance,TextEncoder,TextDecoder,Uint8Array,Uint32Array,ArrayBuffer,atob,btoa,navigator:{userAgent:'node test'},location:{href:'https://example.test/'}};
+sandbox.self=sandbox;sandbox.window=sandbox;
+const ctx=vm.createContext(sandbox);
+for(const name of ['typescript','pxtlib','pxtcompiler'])vm.runInContext(fs.readFileSync(`${core}/built/web/${name}.js`,'utf8'),ctx);
+vm.runInContext(fs.readFileSync(require.resolve('lzma/src/lzma_worker-min.js'),'utf8'),ctx);
+ctx.pxt.setAppTarget(JSON.parse(fs.readFileSync(`${ev3}/built/target.json`,'utf8')));
+for(const name of ['basic','advanced'])test(`official MakeCode compiles ${name} program`,async()=>{let result=await ctx.pxt.simpleCompileAsync({'main.ts':fs.readFileSync(`public/programs/${name}.ts`,'utf8'),'pxt.json':JSON.stringify({name:'test',dependencies:{ev3:'*'},files:['main.ts']})},{native:false});assert.equal(result.success,true,result.errors);assert.ok(result.outfiles['binary.js'].includes('function'));});
+test('UF2 source extraction supports compressed MakeCode projects',async()=>{const files={'main.ts':'motors.largeB.run(20)','pxt.json':JSON.stringify({dependencies:{ev3:'*'},files:['main.ts']})};const json=JSON.stringify(files);const packed=await new Promise((resolve,reject)=>require('lzma').compress(json,1,(r,e)=>e?reject(e):resolve(Uint8Array.from(r))));const meta=Buffer.from(JSON.stringify({compression:'LZMA',headerSize:0}));let payload=Buffer.alloc(16+meta.length+packed.length);Buffer.from([0x41,0x14,0x0e,0x2f,0xb8,0x2f,0xa2,0xbb]).copy(payload);payload.writeUInt16LE(meta.length,8);payload.writeUInt32LE(packed.length,10);meta.copy(payload,16);Buffer.from(packed).copy(payload,16+meta.length);const f=ctx.ts.pxtc.UF2.newBlockFile();ctx.ts.pxtc.UF2.writeBytes(f,0,payload);const bin=ctx.ts.pxtc.UF2.serializeFile(f);const result=await ctx.pxt.cpp.unpackSourceFromHexAsync(Uint8Array.from(bin,c=>c.charCodeAt(0)));assert.deepEqual(JSON.parse(result.source),files);});

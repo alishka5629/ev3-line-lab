@@ -1,0 +1,1 @@
+{"name":"ev3-line-lab","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","prepare-assets":"node scripts/assets.cjs","build":"npm run prepare-assets && vite build","test":"node --test tests/*.test.js"},"dependencies":{"three":"0.181.1","pxt-ev3":"1.4.41","lzma":"2.3.2"},"devDependencies":{"vite":"7.2.2"}}
