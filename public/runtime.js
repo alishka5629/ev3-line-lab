@@ -5,7 +5,7 @@ const stockLog=pxsim.control.__log;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function button(index,down){if(rt&&!rt.dead)rt.board.brickNode.buttonState.buttons[index].setPressed(down);}
 async function tap(index,ticket){if(ticket!==sequence)return false;const owner=rt;button(index,true);await sleep(140);if(owner===rt)button(index,false);return ticket===sequence;}
-function stop(){sequence++;clearInterval(timer);if(rt){rt.kill();rt=null;}autoBusy=false;pilot=null;}
+function stop(){LabSpeaker.stop();sequence++;clearInterval(timer);if(rt){rt.kill();rt=null;}autoBusy=false;pilot=null;}
 function tick(){if(!rt||rt.dead)return;const now=performance.now(),dt=Math.min(40,Math.max(1,now-last));last=now;const motors=rt.board.getMotors();let before=motors.map(m=>m?m.angle:0);for(const m of motors)if(m)m.updateState(dt);
  if(!autoBusy)world.step(dt,(motors[1]?.angle||0)-(before[1]||0),(motors[2]?.angle||0)-(before[2]||0));
  if(pilot){const moving=motors.some(m=>m&&Math.abs(m.getSpeed())>0);const action=pilot.tick(now,moving);if(action?.type==='place'){world.place(action.surface);send({type:'phase',message:action.message});}if(action?.type==='tap'){tap({1:0,2:1,4:2,8:3}[action.key],sequence);}if(action?.type==='release'){world.place('edge');autoBusy=false;pilot=null;send({type:'phase',message:action.message});}if(action?.type==='blocked'){send({type:'error',message:action.message});stop();return;}}
@@ -19,7 +19,7 @@ window.addEventListener('message',async e=>{if(e.source!==parent||!e.data.ev3lab
  if(d.type==='place'){if(world)world.place(d.where);return;}
  if(d.type==='pose'){if(world){world.x=d.x;world.y=d.y;if(d.yaw!==undefined)world.yaw=d.yaw;world.yawRate=0;}return;}
  if(d.type!=='run')return;
- try{stop();let ticket=sequence;world=new LabPhysics.Physics(d.track,d.config);let msg={type:'run',id:'ev3-lab',code:d.binary,boardDefinition:{},parts:[],fnArgs:{}};rt=new pxsim.Runtime(msg);await rt.board.initAsync(msg);rt.errorHandler=err=>send({type:'error',message:String(err)});rt.postError=err=>send({type:'error',message:String(err)});autoBusy=!!d.autoCalibration;pilot=autoBusy?new LabAuto.Pilot(performance.now()):null;const originalLog=stockLog;pxsim.control.__log=(priority,str)=>{if(String(str).startsWith('__EV3LAB_')){pilot?.signal(String(str),performance.now());return;}originalLog(priority,str);};
+ try{stop();LabSpeaker.begin(d.runId);let ticket=sequence;world=new LabPhysics.Physics(d.track,d.config);let msg={type:'run',id:'ev3-lab',code:d.binary,boardDefinition:{},parts:[],fnArgs:{}};rt=new pxsim.Runtime(msg);await rt.board.initAsync(msg);rt.errorHandler=err=>send({type:'error',message:String(err)});rt.postError=err=>send({type:'error',message:String(err)});autoBusy=!!d.autoCalibration;pilot=autoBusy?new LabAuto.Pilot(performance.now()):null;const originalLog=stockLog;pxsim.control.__log=(priority,str)=>{if(String(str).startsWith('__EV3LAB_')){pilot?.signal(String(str),performance.now());return;}originalLog(priority,str);};
  rt.run(()=>{});last=performance.now();timer=setInterval(tick,10);send({type:'started'});
 
  }catch(err){send({type:'error',message:err.message||String(err)});stop();}});
