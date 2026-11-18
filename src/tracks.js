@@ -22,11 +22,28 @@ const bakuPlan=[
  [317,148],[345,145],[371,142],[397,139]
 ];
 const bakuCircuit=bakuPlan.map(([x,y])=>[(x-239)*3.3,(159-y)*3.3]);
+// Black tape traced from the supplied 759 x 806 lab photo.
+// Uniform scale retains the photographed outline. Physical dimensions are unknown.
+const labPaths = [
+ [[250,307],[646,323],[609,461],[510,460],[494,503],[460,625],
+  [414,743],[394,792],[210,778],[255,617],[24,597],[83,463],
+  [180,462],[250,307]],
+ [[250,307],[195,180],[233,101],[258,44],[510,51]],
+ [[233,101],[299,104],[284,138]],
+ [[646,323],[701,132]],
+ [[691,130],[704,132]],
+ [[255,617],[329,619]],
+ [[470,584],[538,588],[525,670]]
+];
+const labPatches = [[[467,499],[523,499],[496,631],[438,631]]];
+const labPoint = ([x,y]) => [(x-363)*1.8,(418-y)*1.8];
+const labCourse = labPaths.map(path => path.map(labPoint));
+const labBlackAreas = labPatches.map(polygon => polygon.map(labPoint));
 export const tracks=[
 {id:'square',name:'Square',tag:'PROJECT',difficulty:'Basic',desc:'Four straights and 90° corners, inspired by the assignment.',paths:[[[-250,-430],[450,-430],[450,430],[-450,430],[-450,-430],[-250,-430]]]},
 {id:'heart',name:'Heart',tag:'PROJECT',difficulty:'Medium',desc:'Smooth curves, a notch and a sharp tip. Based on the assignment example.',paths:[heart]},
 {id:'oval',name:'Warm-up',tag:'START',difficulty:'Easy',desc:'An oval for your first controller adjustments.',paths:[circle(530,340)]},
-{id:'complex',name:'Lab course',tag:'PROJECT',difficulty:'Hard',desc:'Approximate photo reconstruction: corners, zigzags and branches. Exact dimensions were not provided.',paths:[[[-500,-400],[-100,-400],[0,-100],[160,-100],[160,100],[330,100],[330,450],[0,450],[-100,260],[-330,260],[-450,80],[-640,80],[-640,-180],[-430,-180],[-500,-400]],[[160,100],[160,550]],[[-100,260],[-200,550],[100,550]]]},
+{id:'complex',name:'Lab course',tag:'PROJECT',difficulty:'Hard',desc:'Traced from the lab photo, including branches and the wide black patch. Yellow markers omitted. Photo proportions; dimensions are approximate.',paths:labCourse,polygons:labBlackAreas},
 {id:'chicane',name:'Chicane',tag:'CHALLENGE',difficulty:'Hard',desc:'Tight corners to test speed control and line recovery.',paths:[[[-500,-400],[500,-400],[500,-100],[170,-100],[170,100],[500,100],[500,400],[-500,400],[-500,100],[-170,100],[-170,-100],[-500,-100],[-500,-400]]]},
 {id:'eight',name:'Figure eight',tag:'CHALLENGE',difficulty:'Junction',desc:'A crossing is ambiguous to one sensor. Test your route selection logic.',paths:[Array.from({length:241},(_,i)=>{let t=i/240*2*Math.PI;return [580*Math.sin(t),370*Math.sin(2*t)]})]},
 {id:'baku',name:'Baku City Circuit',tag:'BAKU',difficulty:'Hard',desc:'Baku City Circuit outline traced from your reference: the long main straight, 90° city corners and tight old-town section. Uniformly scaled to the robot mat; flat, without elevation.',paths:[bakuCircuit]},
