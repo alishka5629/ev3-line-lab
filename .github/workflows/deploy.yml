@@ -28,6 +28,22 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: dist
+      - name: Wait for the Pages artifact
+        env:
+          ARTIFACT_NAME: github-pages-${{ github.run_attempt }}
+        run: |
+          artifact_url="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=$ARTIFACT_NAME"
+          for attempt in {1..10}; do
+            count=$(curl -fsS --max-time 6 -H 'Cache-Control: no-cache' "$artifact_url" \
+              | jq -r --arg name "$ARTIFACT_NAME" '[.artifacts[] | select(.name == $name)] | length' || true)
+            if [ "$count" = "1" ]; then exit 0; fi
+            sleep 3
+          done
+          echo "::error::The Pages artifact is not visible to the deployment API."
+          exit 1
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
