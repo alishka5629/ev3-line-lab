@@ -9,3 +9,55 @@
 @media(max-width:520px){header{gap:8px}.brand strong{font-size:14px}.theme-control>span,.avatar{display:none}nav{gap:6px}nav a{font-size:10px}nav button{font-size:9px;padding:6px}.theme-control select{width:66px;padding:5px}.theme-control{gap:0}.workspacehead{padding:15px 12px}.segmented button{font-size:9px}}
 [data-theme=dark] .avatar{background:#cbd8bb;color:#26351c}
 .speaker-controls{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding:10px;background:#f1f4ec;border:1px solid var(--line);border-radius:8px}.speaker-controls>div{flex:1;min-width:100px}.speaker-controls b{display:block;font-size:8px;letter-spacing:1px;color:#728362}.speaker-controls span{display:block;font:9px/1.5 'JetBrains Mono',monospace;margin-top:4px}.speaker-controls button{padding:6px;font-size:9px}.speaker-controls label{display:flex;align-items:center;gap:6px;font-size:9px;width:100%}.speaker-controls input{flex:1;min-width:40px;accent-color:#8bb258}.speaker-controls meter{width:100%;height:5px;accent-color:#8bb258}.speaker-controls [data-state=error],.speaker-controls [data-state=blocked]{color:#b25835}[data-theme=dark] .speaker-controls{background:#263224}[data-theme=dark] .speaker-controls b{color:#b6cca5}[data-theme=dark] .speaker-controls [data-state=blocked],[data-theme=dark] .speaker-controls [data-state=error]{color:#ffb28c}.editorpanel #code{min-height:180px}
+
+/* Robot setup and guided calibration */
+.robot-toolbar{display:flex;align-items:center;gap:9px;padding:0 26px 13px;font-size:11px;flex-wrap:wrap}
+.robot-toolbar label{font-weight:800;color:var(--muted)}
+.robot-toolbar select,.cal-heading select{background:var(--panel,#fff);border:1px solid var(--line);border-radius:7px;padding:7px 9px;color:inherit;font-size:12px;font-weight:700}
+.robot-toolbar #open-calibration{margin-left:auto}
+#aux-telemetry{color:#27867c;font-size:9px;font-weight:800;margin-top:5px}
+#aux-light{display:inline;margin-left:4px;font-size:10px;color:inherit}
+[data-theme=dark] #aux-telemetry{color:#76d8cb}
+.chord-button{margin-top:8px;width:100%;text-align:left}
+.chord-button span{float:right;color:var(--muted);font-weight:500}
+#calibration-dialog{width:min(1010px,calc(100% - 28px));max-height:calc(100dvh - 28px);padding:26px}
+.cal-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-right:36px;margin:0 0 19px}
+.cal-heading h2{margin:0;font-size:clamp(23px,3.1vw,34px)}
+.cal-heading label{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:750;color:var(--muted)}
+.cal-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(250px,1fr);gap:22px;align-items:start}
+.cal-view{min-width:0;border-radius:13px;border:1px solid var(--line);overflow:hidden;background:var(--panel,#fff)}
+#cal-canvas{display:block;width:100%;height:auto;touch-action:none;cursor:grab}
+#cal-canvas:active{cursor:grabbing}
+.cal-readings{display:flex;gap:8px;flex-wrap:wrap;padding:10px}
+.cal-readings>div{display:flex;flex:1 1 132px;align-items:center;gap:6px;font-size:11px;min-height:35px;padding:6px 9px;border-radius:8px;border:1px solid var(--line)}
+.cal-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f26b4f;flex:none}
+.aux-dot{background:#34b7aa}
+.cal-readings output{margin-left:auto;font:13px 'JetBrains Mono',monospace}
+.cal-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;list-style:none;padding:0;margin:0 0 20px}
+.cal-progress li{border:1px solid var(--line);border-radius:7px;padding:8px;text-align:center;font-size:11px;font-weight:800;color:var(--muted)}
+.cal-progress li[aria-current]{background:var(--lime);color:#28371b;border-color:transparent}
+.cal-progress li.done{color:inherit}
+.cal-progress li.done::before{content:'✓ ';color:#78a344}
+.cal-instructions h3{font-size:24px;letter-spacing:-.7px;line-height:1.2;margin:0 0 9px}
+.cal-instructions p{font-size:13px;line-height:1.55;margin:0 0 14px}
+.cal-keys{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.cal-keys kbd{font:700 12px 'JetBrains Mono',monospace;padding:8px 10px;border:1px solid var(--line);border-bottom-width:3px;border-radius:6px}
+.cal-keys kbd+kbd::before{content:'+ ';color:var(--muted)}
+.cal-instructions .cal-status{min-height:2.8em;background:#edf4e7;border-radius:8px;padding:8px 10px;color:#465a3d}
+[data-theme=dark] .cal-instructions .cal-status{background:#30442e;color:#dcf0ce}
+.cal-actions{display:flex;flex-wrap:wrap;gap:8px}
+.cal-actions button{min-height:40px}
+.cal-actions button:disabled{cursor:default}
+.cal-reset{margin-top:9px;background:transparent;border-color:transparent;padding-left:0}
+#calibration-dialog .cal-footnote{margin:13px 0 0;color:var(--muted);font-size:11px}
+#calibration-dialog [hidden],#aux-telemetry[hidden],#dual-enter[hidden],#gap-setting[hidden]{display:none}
+@media(max-width:1100px){.robot-toolbar{padding-inline:15px}}
+@media(max-width:680px){
+ #calibration-dialog{padding:17px}
+ .cal-layout{grid-template-columns:1fr;gap:16px}
+ .cal-heading{margin-bottom:12px}
+ .cal-progress{margin-bottom:12px}
+ .cal-view{width:min(100%,440px);margin-inline:auto}
+ .cal-instructions h3{font-size:21px}
+ .robot-toolbar{padding-inline:12px}
+}
