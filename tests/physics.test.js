@@ -15,12 +15,30 @@ test('filled black patch participates in sensor readings, including its boundary
  // Existing strokes must still be black when polygons are present.
  assert.equal(lightAt(50,-100),8);
 });
-test('lab photo branches and broad patch are black and have no closing shortcut',()=>{
+test('Lab Bonus spawns on the upper straight from the right, facing left',()=>{
  const track=tracks.find(t=>t.id==='complex');
- const distanceAt=(x,y)=>globalThis.LabPhysics.surfaceDistance(track,(x-363)*1.8,(418-y)*1.8,18);
- for(const [x,y]of [[230,100],[290,120],[500,52],[685,190],[300,618],[531,630],[480,550]])assert(distanceAt(x,y)<0);
- assert(distanceAt(400,150)>0);
- assert(distanceAt(350,550)>0);
- assert.equal(track.paths.length,7);
+ const [right,left]=track.paths[0];
+ const world=new Physics(track);
+ assert(right[0]>left[0]&&right[1]===left[1]);
+ assert.equal(world.yaw,Math.PI);
+ for(const [surface,expected] of [['black',8],['white',65],['edge',36.5]]){
+  world.place(surface);
+  const sensor=world.sensor();
+  assert(Math.abs(sensor.x-(right[0]-10))<.01);
+  assert(Math.abs(world.light()-expected)<.01);
+ }
+ assert(Math.abs(world.sensor().y-(right[1]+world.config.lineWidth/2))<.01);
+ assert(world.x>world.sensor().x);
+});
+test('Lab Bonus preserves its junctions, straight runs, and solid pad',()=>{
+ const track=tracks.find(t=>t.id==='complex');
+ const distanceAt=(x,y)=>globalThis.LabPhysics.surfaceDistance(track,(x+14)*2.5,(y-56)*2.5,18);
+ for(const [x,y] of [[-212,264],[-150,245],[-19,-127],[2,-127],[100,77],[184,180],[153,-137],[120,-62],[115,-115]]){
+  assert(distanceAt(x,y)<0);
+ }
+ assert(distanceAt(110,190)>0);
+ assert(distanceAt(20,-62)>0);
+ const diagonals=track.paths.flatMap(path=>path.slice(1).filter(([x,y],i)=>x!==path[i][0]&&y!==path[i][1]));
+ assert.equal(diagonals.length,1);
  assert.equal(track.polygons.length,1);
 });

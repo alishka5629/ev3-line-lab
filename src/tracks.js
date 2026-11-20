@@ -22,28 +22,27 @@ const bakuPlan=[
  [317,148],[345,145],[371,142],[397,139]
 ];
 const bakuCircuit=bakuPlan.map(([x,y])=>[(x-239)*3.3,(159-y)*3.3]);
-// Black tape traced from the supplied 759 x 806 lab photo.
-// Uniform scale retains the photographed outline. Physical dimensions are unknown.
-const labPaths = [
- [[250,307],[646,323],[609,461],[510,460],[494,503],[460,625],
-  [414,743],[394,792],[210,778],[255,617],[24,597],[83,463],
-  [180,462],[250,307]],
- [[250,307],[195,180],[233,101],[258,44],[510,51]],
- [[233,101],[299,104],[284,138]],
- [[646,323],[701,132]],
- [[691,130],[704,132]],
- [[255,617],[329,619]],
- [[470,584],[538,588],[525,670]]
-];
-const labPatches = [[[467,499],[523,499],[496,631],[438,631]]];
-const labPoint = ([x,y]) => [(x-363)*1.8,(418-y)*1.8];
-const labCourse = labPaths.map(path => path.map(labPoint));
-const labBlackAreas = labPatches.map(polygon => polygon.map(labPoint));
+// Top-down reconstruction of the lab tape. Straight runs are aligned to the
+// floor axes, with the upper-left diagonal and the pad's offset outlet retained.
+const labPoint = ([x,y]) => [(x+14)*2.5,(y-56)*2.5];
+const labCourse = [
+ [[14,325],[-212,325],[-212,264],[-212,185],[-116,77]],
+ [[-116,77],[-116,-39],[-182,-39],[-182,-127],[-19,-127],
+  [-19,-213],[101,-213],[101,-127]],
+ [[110,-49],[110,-20],[184,-20],[184,77],[184,245]],
+ [[-212,264],[-150,264],[-150,228]],
+ [[-116,77],[184,77]],
+ [[-19,-127],[24,-127]],
+ [[130,-100],[153,-100],[153,-146]],
+ [[177,245],[190,245]]
+].map(path => path.map(labPoint));
+const labBlackAreas = [[[92,-127],[130,-127],[130,-49],[92,-49]].map(labPoint)];
+const labStart = {point: labPoint([10,325]), heading: Math.PI};
 export const tracks=[
 {id:'square',name:'Square',tag:'PROJECT',difficulty:'Basic',desc:'Four straights and 90° corners, inspired by the assignment.',paths:[[[-250,-430],[450,-430],[450,430],[-450,430],[-450,-430],[-250,-430]]]},
 {id:'heart',name:'Heart',tag:'PROJECT',difficulty:'Medium',desc:'Smooth curves, a notch and a sharp tip. Based on the assignment example.',paths:[heart]},
 {id:'oval',name:'Warm-up',tag:'START',difficulty:'Easy',desc:'An oval for your first controller adjustments.',paths:[circle(530,340)]},
-{id:'complex',name:'Lab course',tag:'PROJECT',difficulty:'Hard',desc:'Traced from the lab photo, including branches and the wide black patch. Yellow markers omitted. Photo proportions; dimensions are approximate.',paths:labCourse,polygons:labBlackAreas},
+{id:'complex',name:'Lab Bonus',tag:'PROJECT',difficulty:'Hard',desc:'Top-down lab layout. Start at the right end of the upper straight, facing left. Dimensions are approximate.',paths:labCourse,polygons:labBlackAreas,start:labStart,defaultView:'top'},
 {id:'chicane',name:'Chicane',tag:'CHALLENGE',difficulty:'Hard',desc:'Tight corners to test speed control and line recovery.',paths:[[[-500,-400],[500,-400],[500,-100],[170,-100],[170,100],[500,100],[500,400],[-500,400],[-500,100],[-170,100],[-170,-100],[-500,-100],[-500,-400]]]},
 {id:'eight',name:'Figure eight',tag:'CHALLENGE',difficulty:'Junction',desc:'A crossing is ambiguous to one sensor. Test your route selection logic.',paths:[Array.from({length:241},(_,i)=>{let t=i/240*2*Math.PI;return [580*Math.sin(t),370*Math.sin(2*t)]})]},
 {id:'baku',name:'Baku City Circuit',tag:'BAKU',difficulty:'Hard',desc:'Baku City Circuit outline traced from your reference: the long main straight, 90° city corners and tight old-town section. Uniformly scaled to the robot mat; flat, without elevation.',paths:[bakuCircuit]},

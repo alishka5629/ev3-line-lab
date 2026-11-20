@@ -19,7 +19,16 @@ function surfaceDistance(track,x,y,width){
 }
 class Physics {
  constructor(track,config={}){this.track=track;this.config={wheelDiameter:56,wheelbase:120,sensorOffset:45,lineWidth:18,black:8,white:65,noise:0,slip:0,...config};this.time=0;this.distance=0;this.yawRate=0;this.place('edge');}
- place(where){let a=this.track.paths[0][0],b=this.track.paths[0][1],h=Math.atan2(b[1]-a[1],b[0]-a[0]);let off=where==='black'?0:where==='white'?45:this.config.lineWidth/2;this.yaw=h;this.x=a[0]+off*Math.sin(h)-this.config.sensorOffset*Math.cos(h);this.y=a[1]-off*Math.cos(h)-this.config.sensorOffset*Math.sin(h);this.yawRate=0;}
+ place(where){
+  const [first,next]=this.track.paths[0];
+  const [x,y]=this.track.start?.point??first;
+  const heading=this.track.start?.heading??Math.atan2(next[1]-first[1],next[0]-first[0]);
+  const offset=where==='black'?0:where==='white'?45:this.config.lineWidth/2;
+  this.yaw=heading;
+  this.x=x+offset*Math.sin(heading)-this.config.sensorOffset*Math.cos(heading);
+  this.y=y-offset*Math.cos(heading)-this.config.sensorOffset*Math.sin(heading);
+  this.yawRate=0;
+ }
  sensor(){return {x:this.x+this.config.sensorOffset*Math.cos(this.yaw),y:this.y+this.config.sensorOffset*Math.sin(this.yaw)};}
  light(){let p=this.sensor(),d=surfaceDistance(this.track,p.x,p.y,this.config.lineWidth);let f=clamp(.5+d/6,0,1);return clamp(this.config.black+(this.config.white-this.config.black)*f+(Math.random()-.5)*this.config.noise*2,0,100);}
  step(dt,dl,dr){let factor=Math.PI*this.config.wheelDiameter/360;let l=dl*factor*(1-this.config.slip),r=dr*factor*(1-this.config.slip*.6),angle=(r-l)/this.config.wheelbase,dist=(r+l)/2;this.x+=dist*Math.cos(this.yaw+angle/2);this.y+=dist*Math.sin(this.yaw+angle/2);this.yaw+=angle;this.yawRate=angle/dt*1000*180/Math.PI;this.time+=dt;this.distance+=Math.abs(dist);}
