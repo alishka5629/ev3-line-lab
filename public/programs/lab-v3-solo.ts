@@ -10,9 +10,6 @@ const EXIT_SHIFT_MM = 0  // positive is right; zero uses the mapped shift
 const EXIT_TO_CORNER_MM = 0
 const PRACTICE_START_MM = 120
 let practice = false
-let secondSensor = false // optional color sensor on port 1, 12 mm left of port 3
-let secondBlack = 0
-let secondWhite = 100
 const BASE_SPEED = 21
 const MIN_SPEED = 12
 const KP = 0.14
@@ -87,19 +84,17 @@ function enter(msg: string) {
     brick.showString("Press ENTER", 3)
     if (msg == "Sensor on LINE") {
         brick.showString("UP+ENTER: practice", 5)
-        brick.showString("RIGHT+ENTER: 2 eyes", 6)
     }
     while (active() && !brick.buttonEnter.isPressed()) pause(20)
     if (msg == "Sensor on LINE" && active()) {
         practice = brick.buttonUp.isPressed()
-        secondSensor = brick.buttonRight.isPressed()
     }
     while (active() && brick.buttonEnter.isPressed()) pause(20)
     pause(250)
 }
-function sample(aux: boolean): number {
+function sample(): number {
     let sum = 0
-    for (let i = 0; i < 10; i++) { sum += aux ? sensors.color1.light(LightIntensityMode.Reflected) : raw(); pause(10) }
+    for (let i = 0; i < 10; i++) { sum += raw(); pause(10) }
     return sum / 10
 }
 function bearing(i: number): number {
@@ -172,8 +167,6 @@ function getOutlet(): boolean {
     let course = bearing(11)
     if (scan(course, 32) && confirmOutlet()) return true
     if (!active() || reason != "") return false
-    // With the auxiliary sensor on black and the main on white, straddle the edge.
-    if (secondSensor && light() > 65 && auxLight() < 35 && scan(course, 48) && confirmOutlet()) return true
     let lateral = course + 90
     for (let i = 0; i < 2; i++) {
         if (!active() || reason != "" || !aim(lateral)) return false
@@ -363,7 +356,7 @@ function crossPad(): boolean {
     while (active() && control.millis() < end) {
         let distance = axle() - start
         let v = light()
-        if (v < 22 && (!secondSensor || auxLight() < 35)) blackSamples++
+        if (v < 22) blackSamples++
         if (distance > expected * 0.64 && v > 28 && blackSamples >= 4) {
             if (firstLight < 0) { firstLight = distance; farEdge = tipForward() }
             if (distance - firstLight >= 3) break
@@ -384,9 +377,6 @@ function crossPad(): boolean {
     return true
 }
 
-function auxLight(): number {
-    return 100 * (sensors.color1.light(LightIntensityMode.Reflected) - secondBlack) / (secondWhite - secondBlack)
-}
 function outletTurn(): boolean {
     for (let attempt = 0; attempt < 2; attempt++) {
         if (follow() && advance(SENSOR_AHEAD_MM - (attempt == 0 ? 12 : 26), entryYaw) && getEdge(bearing(12))) return true
@@ -404,15 +394,10 @@ function runCourse(): boolean {
     brick.buttonLeft.onEvent(ButtonEvent.Pressed, function () { stopped = true; motors.stopAll() })
     enter("Sensor on LINE")
     if (!active()) return false
-    black = sample(false)
-    if (secondSensor) secondBlack = sample(true)
+    black = sample()
     enter("Sensor on FLOOR")
     if (!active()) return false
-    white = sample(false)
-    if (secondSensor) {
-        secondWhite = sample(true)
-        if (secondWhite - secondBlack < 15) return fail("Check color port 1")
-    }
+    white = sample()
     if (white - black < 15) return fail("Low contrast")
     enter("On EDGE, keep still")
     if (!active()) return false

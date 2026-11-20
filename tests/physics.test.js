@@ -42,15 +42,3 @@ test('Lab Bonus preserves its junctions, straight runs, and solid pad',()=>{
  assert.equal(diagonals.length,1);
  assert.equal(track.polygons.length,1);
 });
-
-test('dual sensor calibration uses two spots on the same physical surface',()=>{
- const p=new Physics(tracks.find(t=>t.id==='complex'),{sensorCount:2,sensorGap:24});
- p.place('black');assert.equal(p.light(3),8);assert.equal(p.light(1),8);
- p.place('white');assert.equal(p.light(3),65);assert.equal(p.light(1),65);
- p.place('edge');
- assert.equal(p.light(3),36.5);
- const main=p.sensor(3),left=p.sensor(1);
- assert(Math.abs(main.x-left.x)<.01);
- assert(Math.abs(main.y-left.y-24)<.01);
- assert.notEqual(p.light(3),p.light(1));
-});
