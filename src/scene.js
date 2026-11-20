@@ -2,8 +2,20 @@ import {fitTrack,trackBounds} from './track-view.js';
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 export class LabScene{
- constructor(host,onPlace){this.host=host;this.scene=new T.Scene();this.scene.background=new T.Color('#eeefe8');this.camera=new T.PerspectiveCamera(38,1,1,10000);this.camera.position.set(1050,1500,1300);this.renderer=new T.WebGLRenderer({antialias:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=T.PCFSoftShadowMap;this.renderer.setClearColor('#eeefe8');host.appendChild(this.renderer.domElement);this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.enableDamping=true;this.controls.maxPolarAngle=Math.PI*.48;this.controls.minDistance=180;this.controls.maxDistance=7500;this.controls.target.set(0,0,0);this.scene.add(new T.HemisphereLight(0xffffff,0xb1b9a4,2.4));const light=new T.DirectionalLight(0xfffdf0,3);light.position.set(-400,1200,600);light.castShadow=true;light.shadow.mapSize.set(1024,1024);Object.assign(light.shadow.camera,{left:-1100,right:1100,top:1100,bottom:-1100,near:1,far:2500});light.shadow.bias=-.0005;light.shadow.normalBias=1;this.scene.add(light);const fill=new T.DirectionalLight(0xd4e7ff,.5);fill.position.set(700,500,-500);this.scene.add(fill);this.robot=this.makeRobot();this.scene.add(this.robot);this.resize=new ResizeObserver(()=>{let w=host.clientWidth,h=host.clientHeight;this.renderer.setSize(w,h);this.camera.aspect=w/Math.max(h,1);this.camera.updateProjectionMatrix();if(this.bounds&&this.view!=='robot')this.setView(this.view);this.dirty=true;});this.resize.observe(host);this.view='perspective';this.pose={x:0,y:0,yaw:0};this.trace=[];this.traceBuffer=new Float32Array(3500*3);this.traceGeometry=new T.BufferGeometry();this.traceGeometry.setAttribute('position',new T.BufferAttribute(this.traceBuffer,3).setUsage(T.DynamicDrawUsage));this.traceGeometry.setDrawRange(0,0);this.traceLine=new T.Line(this.traceGeometry,new T.LineBasicMaterial({color:0x94af6c,transparent:true,opacity:.5}));this.scene.add(this.traceLine);
- this.renderer.domElement.addEventListener('pointerdown',e=>{if(!e.shiftKey)return;let r=this.renderer.domElement.getBoundingClientRect(),mouse=new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),ray=new T.Raycaster();ray.setFromCamera(mouse,this.camera);let p=new T.Vector3();if(ray.ray.intersectPlane(new T.Plane(new T.Vector3(0,1,0),0),p))onPlace(p.x,-p.z);});this.dirty=true;this.controls.addEventListener('change',()=>{this.dirty=true;});this.animate=()=>{requestAnimationFrame(this.animate);if(document.hidden)return;const changed=this.controls.update();if(this.dirty||changed){this.renderer.render(this.scene,this.camera);this.dirty=false;}};this.animate();}
+ constructor(host,onPlace){this.host=host;this.scene=new T.Scene();this.scene.background=new T.Color('#eeefe8');this.camera=new T.PerspectiveCamera(38,1,1,10000);this.camera.position.set(1050,1500,1300);this.renderer=new T.WebGLRenderer({antialias:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=T.PCFSoftShadowMap;this.renderer.setClearColor('#eeefe8');host.appendChild(this.renderer.domElement);this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.enableDamping=true;this.controls.maxPolarAngle=Math.PI*.48;this.controls.minDistance=180;this.controls.maxDistance=7500;this.controls.target.set(0,0,0);this.scene.add(new T.HemisphereLight(0xffffff,0xb1b9a4,2.4));const light=new T.DirectionalLight(0xfffdf0,3);light.position.set(-400,1200,600);light.castShadow=true;light.shadow.mapSize.set(1024,1024);Object.assign(light.shadow.camera,{left:-1100,right:1100,top:1100,bottom:-1100,near:1,far:2500});light.shadow.bias=-.0005;light.shadow.normalBias=1;this.scene.add(light);const fill=new T.DirectionalLight(0xd4e7ff,.5);fill.position.set(700,500,-500);this.scene.add(fill);this.robot=this.makeRobot();this.scene.add(this.robot);this.resize=new ResizeObserver(()=>{let w=host.clientWidth,h=host.clientHeight;this.renderer.setSize(w,h);this.camera.aspect=w/Math.max(h,1);this.camera.updateProjectionMatrix();if(this.bounds&&this.view!=='robot')this.setView(this.view);this.draw();});this.resize.observe(host);this.view='perspective';this.pose={x:0,y:0,yaw:0};this.trace=[];this.traceBuffer=new Float32Array(3500*3);this.traceGeometry=new T.BufferGeometry();this.traceGeometry.setAttribute('position',new T.BufferAttribute(this.traceBuffer,3).setUsage(T.DynamicDrawUsage));this.traceGeometry.setDrawRange(0,0);this.traceLine=new T.Line(this.traceGeometry,new T.LineBasicMaterial({color:0x94af6c,transparent:true,opacity:.5}));this.scene.add(this.traceLine);
+ this.renderer.domElement.addEventListener('pointerdown',e=>{if(!e.shiftKey)return;let r=this.renderer.domElement.getBoundingClientRect(),mouse=new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),ray=new T.Raycaster();ray.setFromCamera(mouse,this.camera);let p=new T.Vector3();if(ray.ray.intersectPlane(new T.Plane(new T.Vector3(0,1,0),0),p))onPlace(p.x,-p.z);});this.controls.addEventListener('change',()=>this.draw());
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)this.draw();});
+ this.draw();
+ }
+ draw(){
+  if(this.frame||document.hidden)return;
+  this.frame=requestAnimationFrame(()=>{
+   this.frame=0;
+   if(document.hidden)return;
+   this.controls.update();
+   this.renderer.render(this.scene,this.camera);
+  });
+ }
  mat(color,roughness=.65){return new T.MeshStandardMaterial({color,roughness});}
  box(group,x,y,z,w,h,d,mat){let m=new T.Mesh(new T.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
  makeRobot(){const g=new T.Group(),white=this.mat('#e5e7de'),dark=this.mat('#333a36'),grey=this.mat('#858c86'),red=this.mat('#d14334'),rubber=this.mat('#252924',.98);this.box(g,-15,29,0,125,16,83,dark);for(let z of [-34,34]){this.box(g,-17,42,z,130,12,11,grey);for(let x=-72;x<45;x+=16){let m=new T.Mesh(new T.CylinderGeometry(4,4,12,16),dark);m.rotation.x=Math.PI/2;m.position.set(x,42,z);g.add(m);}}
@@ -13,12 +25,59 @@ export class LabScene{
  this.box(g,-14,63,0,100,38,72,white);this.box(g,-14,83,0,96,4,68,white);this.box(g,-33,86,0,46,2,48,dark);this.lcdCanvas=document.createElement('canvas');this.lcdCanvas.width=178;this.lcdCanvas.height=128;let ctx=this.lcdCanvas.getContext('2d');ctx.fillStyle='#a4bc95';ctx.fillRect(0,0,178,128);ctx.fillStyle='#30452c';ctx.font='bold 25px sans-serif';ctx.fillText('EV3',60,70);this.lcdTexture=new T.CanvasTexture(this.lcdCanvas);let lcd=new T.Mesh(new T.PlaneGeometry(41,40),new T.MeshBasicMaterial({map:this.lcdTexture}));lcd.rotation.x=-Math.PI/2;lcd.rotation.z=Math.PI/2;lcd.position.set(-33,87.2,0);g.add(lcd);for(let [x,z]of [[13,0],[25,0],[1,0],[13,12],[13,-12]])this.box(g,x,86,z,10,4,10,x===13&&z===0?red:grey);
  this.sensor=this.box(g,45,14,0,20,18,20,dark);this.box(g,45,24,0,22,4,22,white);this.box(g,27,29,0,35,7,10,grey);const spot=new T.Mesh(new T.CircleGeometry(3,20),new T.MeshBasicMaterial({color:0xff5e46,transparent:true,opacity:.7,depthWrite:false}));spot.rotation.x=-Math.PI/2;spot.position.set(45,1.3,0);this.spot=spot;g.add(spot);this.box(g,-48,51,-46,25,22,15,white);this.box(g,-48,64,-46,20,3,12,this.mat('#457ca0'));
  for(let [z,end]of [[-29,new T.Vector3(45,25,0)],[25,new T.Vector3(4,38,40)],[-20,new T.Vector3(-48,60,-46)]]){let curve=new T.CatmullRomCurve3([new T.Vector3(-66,65,z),new T.Vector3(-80,103,z),new T.Vector3(5,105,z),end]);g.add(new T.Mesh(new T.TubeGeometry(curve,30,1.6,6,false),dark));}for(let i=0;i<5;i++)this.box(g,7+i*4,87,-25,1.4,1,12,dark);this.audioLight=new T.Mesh(new T.TorusGeometry(14,1.2,8,32),new T.MeshBasicMaterial({color:0xb3e77b}));this.audioLight.rotation.x=-Math.PI/2;this.audioLight.position.set(15,91,-25);this.audioLight.visible=false;g.add(this.audioLight);return g;}
- setSpeaking(value){if(this.audioLight&&this.audioLight.visible!==value){this.audioLight.visible=value;this.dirty=true;}}
- setTheme(theme){this.dirty=true;this.scene.background=new T.Color(theme==='dark'?'#19221e':'#eeefe8');this.renderer.setClearColor(theme==='dark'?'#19221e':'#eeefe8');}
- configure(c){this.dirty=true;this.wheels.forEach((w,i)=>{w.position.z=(i===0?-1:1)*c.wheelbase/2;w.scale.set(c.wheelDiameter/56,c.wheelDiameter/56,1);w.position.y=c.wheelDiameter/2;});this.sensor.position.x=c.sensorOffset;this.spot.position.x=c.sensorOffset;}
- setTrack(track,width=18){this.dirty=true;this.track=track;this.bounds=trackBounds(track);this.trace=[];this.traceGeometry.setDrawRange(0,0);if(this.floor){this.scene.remove(this.floor);this.floor.geometry.dispose();this.floor.material.map.dispose();this.floor.material.dispose();}let c=document.createElement('canvas');c.width=c.height=2048;let ctx=c.getContext('2d');ctx.fillStyle='#f7f8f2';ctx.fillRect(0,0,2048,2048);ctx.strokeStyle='#e4e8dc';ctx.lineWidth=1;for(let n=0;n<=2048;n+=2048/18){ctx.beginPath();ctx.moveTo(n,0);ctx.lineTo(n,2048);ctx.stroke();ctx.beginPath();ctx.moveTo(0,n);ctx.lineTo(2048,n);ctx.stroke();}ctx.strokeStyle='#303830';ctx.lineWidth=width*2048/1800;ctx.lineJoin='round';ctx.lineCap='round';for(let path of track.paths){ctx.beginPath();path.forEach(([x,y],i)=>ctx[i?'lineTo':'moveTo']((x/1800+.5)*2048,(.5-y/1800)*2048));ctx.stroke();}ctx.fillStyle='#303830';for(const polygon of track.polygons||[]){ctx.beginPath();polygon.forEach(([x,y],i)=>ctx[i?'lineTo':'moveTo']((x/1800+.5)*2048,(.5-y/1800)*2048));ctx.closePath();ctx.fill();}let texture=new T.CanvasTexture(c);texture.anisotropy=this.renderer.capabilities.getMaxAnisotropy();this.floor=new T.Mesh(new T.PlaneGeometry(1800,1800),new T.MeshStandardMaterial({map:texture,roughness:1}));this.floor.rotation.x=-Math.PI/2;this.floor.receiveShadow=true;this.scene.add(this.floor);}
+ setSpeaking(value){if(this.audioLight&&this.audioLight.visible!==value){this.audioLight.visible=value;this.draw();}}
+ setTheme(palette){
+  this.palette=palette;
+  this.scene.background=new T.Color(palette.scene);
+  this.traceLine.material.color.set(palette.trace);
+  this.audioLight.material.color.set(palette.trace);
+  if(this.track)this.paintFloor();
+  this.draw();
+ }
+ configure(c){this.draw();this.wheels.forEach((w,i)=>{w.position.z=(i===0?-1:1)*c.wheelbase/2;w.scale.set(c.wheelDiameter/56,c.wheelDiameter/56,1);w.position.y=c.wheelDiameter/2;});this.sensor.position.x=c.sensorOffset;this.spot.position.x=c.sensorOffset;}
+ setTrack(track,width=18){
+  const needsPaint=this.track!==track||this.width!==width||!this.floor;
+  this.track=track;
+  this.width=width;
+  this.bounds=trackBounds(track);
+  this.trace=[];
+  this.traceGeometry.setDrawRange(0,0);
+  if(needsPaint)this.paintFloor();
+  this.draw();
+ }
+ paintFloor(){
+  if(!this.floor){
+   this.floorCanvas=document.createElement('canvas');
+   this.floorCanvas.width=this.floorCanvas.height=2048;
+   const texture=new T.CanvasTexture(this.floorCanvas);
+   texture.anisotropy=this.renderer.capabilities.getMaxAnisotropy();
+   this.floor=new T.Mesh(new T.PlaneGeometry(1800,1800),new T.MeshStandardMaterial({map:texture,roughness:1}));
+   this.floor.rotation.x=-Math.PI/2;
+   this.floor.receiveShadow=true;
+   this.scene.add(this.floor);
+  }
+  const ctx=this.floorCanvas.getContext('2d');
+  const size=this.floorCanvas.width;
+  const palette=this.palette??{floor:'#f7f8f2',grid:'#e4e8dc',track:'#303830'};
+  ctx.fillStyle=palette.floor;
+  ctx.fillRect(0,0,size,size);
+  ctx.strokeStyle=palette.grid;
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let n=0;n<=size;n+=size/18){
+   ctx.moveTo(n,0);ctx.lineTo(n,size);ctx.moveTo(0,n);ctx.lineTo(size,n);
+  }
+  ctx.stroke();
+  const path=points=>{ctx.beginPath();points.forEach(([x,y],i)=>ctx[i?'lineTo':'moveTo']((x/1800+.5)*size,(.5-y/1800)*size));};
+  ctx.strokeStyle=ctx.fillStyle=palette.track;
+  ctx.lineWidth=this.width*size/1800;
+  ctx.lineJoin=ctx.lineCap='round';
+  for(const points of this.track.paths){path(points);ctx.stroke();}
+  for(const polygon of this.track.polygons??[]){path(polygon);ctx.closePath();ctx.fill();}
+  this.floor.material.map.needsUpdate=true;
+ }
  setView(view){
-  this.dirty=true;
+  this.draw();
   this.view=view;
   if(view==='robot'){
    this.camera.position.set(this.pose.x+230,220,-this.pose.y+240);
@@ -36,6 +95,6 @@ export class LabScene{
   }
   this.controls.update();
  }
- update(s,trace=true){this.dirty=true;this.pose=s;this.robot.position.set(s.x,0,-s.y);this.robot.rotation.y=s.yaw;this.wheels.forEach((w,i)=>w.rotation.z=-(s.angles?.[i]||0)*Math.PI/180);if(trace&&(!this.trace.length||this.trace[this.trace.length-1].distanceTo(new T.Vector3(s.x,1,-s.y))>4)){this.trace.push(new T.Vector3(s.x,1,-s.y));if(this.trace.length>3500){this.trace.shift();this.traceBuffer.copyWithin(0,3);}const i=this.trace.length-1;this.traceBuffer[i*3]=s.x;this.traceBuffer[i*3+1]=1;this.traceBuffer[i*3+2]=-s.y;this.traceGeometry.attributes.position.needsUpdate=true;this.traceGeometry.setDrawRange(0,this.trace.length);this.traceLine.frustumCulled=false;} }
- lcd(canvas){this.dirty=true;this.lcdCanvas.getContext('2d').drawImage(canvas,0,0,178,128);this.lcdTexture.needsUpdate=true;}
+ update(s,trace=true){this.draw();this.pose=s;this.robot.position.set(s.x,0,-s.y);this.robot.rotation.y=s.yaw;this.wheels.forEach((w,i)=>w.rotation.z=-(s.angles?.[i]||0)*Math.PI/180);if(trace&&(!this.trace.length||this.trace[this.trace.length-1].distanceTo(new T.Vector3(s.x,1,-s.y))>4)){this.trace.push(new T.Vector3(s.x,1,-s.y));if(this.trace.length>3500){this.trace.shift();this.traceBuffer.copyWithin(0,3);}const i=this.trace.length-1;this.traceBuffer[i*3]=s.x;this.traceBuffer[i*3+1]=1;this.traceBuffer[i*3+2]=-s.y;this.traceGeometry.attributes.position.needsUpdate=true;this.traceGeometry.setDrawRange(0,this.trace.length);this.traceLine.frustumCulled=false;} }
+ lcd(canvas){this.draw();this.lcdCanvas.getContext('2d').drawImage(canvas,0,0,178,128);this.lcdTexture.needsUpdate=true;}
 }

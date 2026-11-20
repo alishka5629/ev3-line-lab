@@ -2,37 +2,7 @@
 
 :root {
   font-family: "DM Sans", system-ui, sans-serif;
-  color-scheme: light;
-  --page: #f1f3ed;
-  --panel: #fbfcf9;
-  --soft: #eef1e8;
-  --ink: #26342b;
-  --muted: #5b6a5e;
-  --line: #dbe1d6;
-  --accent: #c5e994;
-  --accent-ink: #26391d;
-  --accent-hover: #b4de7f;
-  --focus: #5c8842;
-  --select: #e8f0df;
-  --select-line: #b4caa5;
-  --scene: #e8ebe3;
-  --lcd: #a8bd99;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
-  --shadow: 0 1px 2px #27372b08;
-}
-:root[data-theme=dark] {
-  color-scheme: dark;
-  --page: #141b17;
-  --panel: #1e2822;
-  --soft: #27342a;
-  --ink: #e7eee3;
-  --muted: #aebbab;
-  --line: #354439;
-  --select: #30452d;
-  --select-line: #56774a;
-  --focus: #a4cd7f;
-  --scene: #19221e;
-  --shadow: none;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -83,10 +53,14 @@ button:disabled { cursor: default; opacity: .54; }
   font-size: .96rem;
   letter-spacing: -.08em;
 }
-.course { padding-left: 15px; border-left: 1px solid var(--line); font: .71rem var(--mono); color: var(--muted); }
-nav { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: .78rem; font-weight: 700; }
-nav a { padding: 9px 3px 9px 5px; }
-nav button { border-color: transparent; }
+
+.header-inner nav { display: flex; align-items: center; gap: 5px; font-size: .78rem; font-weight: 700; }
+.site-actions { margin-left: auto; }
+.site-links { margin-left: clamp(8px,2vw,24px); }
+.site-links a { padding: 7px 12px; color: var(--muted); border-radius: 7px; }
+.site-links a[aria-current] { background: var(--select); color: var(--ink); }
+nav a { padding: 7px 4px; }
+.site-actions #help { border-color: transparent; }
 .dashboard {
   max-width: 1920px;
   margin: 0 auto;
@@ -165,7 +139,7 @@ nav button { border-color: transparent; }
   padding: 9px 13px;
 }
 .runbar .primary { padding-inline: 14px; }
-.runbar .primary span { margin-right: 3px; font-size: .65rem; }
+.play-icon{display:inline-block;margin-right:4px;border-block:4px solid transparent;border-left:6px solid currentColor}
 .run-status { flex: 1 1 8em; padding-left: 4px; font-size: .77rem; color: var(--muted); overflow-wrap: anywhere; }
 #clock {
   display: block;
@@ -196,10 +170,10 @@ nav button { border-color: transparent; }
 .code-toolbar { display: flex; gap: 5px; margin-bottom: 8px; }
 .code-toolbar select { flex: 1 1 0; min-width: 0; }
 .code-toolbar button { flex: 0 0 auto; }
-.code-area { overflow: hidden; border-radius: 9px; background: #202b25; color: #e2eddf; }
-.filename, .console { padding: 8px 11px; font: .69rem/1.45 var(--mono); background: #28352d; }
-.filename { display: flex; justify-content: space-between; gap: 8px; color: #c9dac4; }
-.filename span + span { color: #a6ba9f; }
+.code-area { overflow: hidden; border-radius: 9px; background: var(--code-bg); color: var(--code-ink); }
+.filename, .console { padding: 8px 11px; font: .69rem/1.45 var(--mono); background: color-mix(in srgb, var(--code-bg), var(--code-ink) 8%); }
+.filename { display: flex; justify-content: space-between; gap: 8px; color: var(--code-ink); }
+.filename span + span { color: var(--syntax-note); }
 #code {
   display: block;
   width: 100%;
@@ -209,14 +183,14 @@ nav button { border-color: transparent; }
   overflow: auto;
   border: 0;
   padding: 11px;
-  background: #202b25;
-  color: #e2eddf;
+  background: var(--code-bg);
+  color: var(--code-ink);
   font: .73rem/1.56 var(--mono);
   tab-size: 4;
   white-space: pre;
 }
 #code:focus-visible { outline-offset: -2px; }
-.console { color: #b6c9b0; max-height: 5em; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.console { color: var(--syntax-note); max-height: 5em; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .console.error { color: #ffbfb0; }
 .brickpanel { margin-top: 12px; }
 .bricktop { margin-bottom: 8px; }
@@ -279,12 +253,13 @@ dialog p { font-size: .86rem; line-height: 1.55; color: var(--muted); }
   .telemetry strong { font-size: clamp(1rem, 4vw, 1.27rem); }
 }
 @media (max-width: 490px) {
-  .course { display: none; }
   .header-inner { min-height: 55px; gap: 6px; }
   .brand { font-size: .95rem; gap: 6px; }
   .brandmark { width: 28px; height: 28px; }
-  nav { gap: 4px; font-size: .7rem; }
-  nav button, nav select { min-height: 34px; padding-inline: 5px; font-size: .72rem; }
+  .header-inner nav { gap: 4px; font-size: .7rem; }
+  .site-links { margin-left: 0; }
+  .site-links a, .site-actions button { padding-inline: 6px; }
+  .site-actions a { display: none; }
   .workspacehead { padding: 9px 11px; }
   .scene { height: clamp(265px, 72vw, 350px); }
   .runbar { padding-inline: 9px; gap: 5px; }
@@ -302,3 +277,5 @@ dialog p { font-size: .86rem; line-height: 1.55; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   .meter i { transition: none; }
 }
+
+@media(max-width:385px){.brand strong{display:none}.header-inner{gap:9px}}

@@ -1,9 +1,33 @@
+import {initThemePicker} from './themes.js';
 import './style.css';import {Speaker} from './speaker.js';import {tracks} from './tracks.js';import {LabScene} from './scene.js';import {LabScene2D} from './scene2d.js';
 const $=id=>document.getElementById(id);let track=tracks[0],mode='auto',active=false,compiling=false,pose={x:0,y:0,yaw:0},config={},requestId=0,runGeneration=0,workerReady=false,frameReady=false,runtime=$('runtime'),pending=new Map();
 let runV3=false,runResult="";
 let targetVisual=null,shownVisual=null,visualFrame=0,lastVisualAt=0,lastTelemetryAt=0,saveTimer;
-function paintRobot(now){visualFrame=0;if(!targetVisual)return;const f=1-Math.exp(-Math.min(60,now-lastVisualAt)/35);lastVisualAt=now;const a=shownVisual||targetVisual;shownVisual={x:a.x+(targetVisual.x-a.x)*f,y:a.y+(targetVisual.y-a.y)*f,yaw:a.yaw+(targetVisual.yaw-a.yaw)*f,angles:targetVisual.angles};scene?.update(shownVisual,true);if(active)visualFrame=requestAnimationFrame(paintRobot);}
-function queueRobot(p){targetVisual=p;if(!shownVisual)shownVisual={...p};if(!visualFrame){lastVisualAt=performance.now();visualFrame=requestAnimationFrame(paintRobot);}}
+function paintRobot(now){
+ visualFrame=0;
+ if(!targetVisual)return;
+ const position=shownVisual||targetVisual;
+ const target=targetVisual;
+ const dx=target.x-position.x,dy=target.y-position.y,da=target.yaw-position.yaw;
+ const settled=Math.abs(dx)<.12&&Math.abs(dy)<.12&&Math.abs(da)<.002;
+ const factor=1-Math.exp(-Math.min(60,now-lastVisualAt)/35);
+ lastVisualAt=now;
+ shownVisual=settled?target:{
+  x:position.x+dx*factor,y:position.y+dy*factor,yaw:position.yaw+da*factor,angles:target.angles,
+ };
+ scene?.update(shownVisual,true);
+ if(active&&!settled)visualFrame=requestAnimationFrame(paintRobot);
+}
+function queueRobot(p){
+ const old=targetVisual;
+ if(old&&old.x===p.x&&old.y===p.y&&old.yaw===p.yaw&&old.angles?.[0]===p.angles?.[0]&&old.angles?.[1]===p.angles?.[1])return;
+ targetVisual=p;
+ if(!shownVisual)shownVisual=p;
+ if(!visualFrame){
+  lastVisualAt=performance.now();
+  visualFrame=requestAnimationFrame(paintRobot);
+ }
+}
 const speaker=new Speaker({onState:s=>{$('speaker-state').textContent=s.detail||({idle:'Ready',playing:'Playing',blocked:'Audio blocked',unavailable:'Audio unavailable'}[s.state]||s.state);$('speaker-state').dataset.state=s.state;}});
 function log(s,error=false){$('console').textContent=s;$('console').classList.toggle('error',error);}
 const onPlace=(x,y)=>{pose.x=x;pose.y=y;post({type:'pose',...pose});scene.update(pose,false);};let scene;try{scene=new LabScene($('scene'),onPlace);}catch(e){scene=new LabScene2D($('scene'),onPlace);document.querySelector('[data-view=perspective]').hidden=true;document.querySelector('[data-view=perspective]').classList.remove('active');document.querySelector('[data-view=top]').classList.add('active');}
@@ -87,7 +111,7 @@ window.addEventListener('message',e=>{if(e.source!==runtime.contentWindow||!e.da
   $('state-label').textContent=runResult;
  }
  return;
-}if(s.type==='phase'){$('state-label').textContent=s.message;return;}if(s.type!=='state'||!active)return;if(!runResult&&!s.autoBusy&&(s.left||s.right))$('state-label').textContent='Program running';pose={x:s.x,y:s.y,yaw:s.yaw,angles:s.angles};if(s.autoBusy){shownVisual={...pose};scene?.update(pose,false);}else queueRobot(pose);if(s.screen&&s.screen.length===178*128){const pixels=s.screen instanceof Uint32Array?s.screen:new Uint32Array(s.screen);const data=new ImageData(new Uint8ClampedArray(pixels.buffer,pixels.byteOffset,pixels.byteLength),178,128);$('lcd').getContext('2d').putImageData(data,0,0);scene?.lcd($('lcd'));}if(performance.now()-lastTelemetryAt<100)return;lastTelemetryAt=performance.now();setLight(s.light);$('motor-left').innerHTML=s.left+'<small> %</small>';$('motor-right').innerHTML=s.right+'<small> %</small>';$('left-meter').style.width=Math.abs(s.left)+'%';$('right-meter').style.width=Math.abs(s.right)+'%';$('gyro').innerHTML=Math.round(s.gyro)+'<small>°</small>';$('distance').textContent=(s.distance/1000).toFixed(2)+' m';if(runResult&&s.screen&&!s.left&&!s.right){active=false;cancelAnimationFrame(visualFrame);visualFrame=0;scene?.update(pose,false);}let sec=s.time/1000;$('clock').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+(sec%60).toFixed(1).padStart(4,'0');});
+}if(s.type==='phase'){$('state-label').textContent=s.message;return;}if(s.type!=='state'||!active)return;if(!runResult&&!s.autoBusy&&(s.left||s.right)&&$('state-label').textContent!=='Program running')$('state-label').textContent='Program running';pose={x:s.x,y:s.y,yaw:s.yaw,angles:s.angles};if(s.autoBusy){shownVisual={...pose};scene?.update(pose,false);}else queueRobot(pose);if(s.screen&&s.screen.length===178*128){const pixels=s.screen instanceof Uint32Array?s.screen:new Uint32Array(s.screen);const data=new ImageData(new Uint8ClampedArray(pixels.buffer,pixels.byteOffset,pixels.byteLength),178,128);$('lcd').getContext('2d').putImageData(data,0,0);scene?.lcd($('lcd'));}if(performance.now()-lastTelemetryAt<100)return;lastTelemetryAt=performance.now();setLight(s.light);$('motor-left').innerHTML=s.left+'<small> %</small>';$('motor-right').innerHTML=s.right+'<small> %</small>';$('left-meter').style.width=Math.abs(s.left)+'%';$('right-meter').style.width=Math.abs(s.right)+'%';$('gyro').innerHTML=Math.round(s.gyro)+'<small>°</small>';$('distance').textContent=(s.distance/1000).toFixed(2)+' m';if(runResult&&s.screen&&!s.left&&!s.right){active=false;cancelAnimationFrame(visualFrame);visualFrame=0;scene?.update(pose,false);}let sec=s.time/1000;$('clock').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+(sec%60).toFixed(1).padStart(4,'0');});
 async function loadProgram(name){try{
  const code=await fetchProgram(name);
  $('code').value=code;$('program').value=name;
@@ -137,8 +161,7 @@ window.addEventListener('pagehide',()=>{clearTimeout(saveTimer);save();});
 
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&active){stop();log('Run stopped because the tab was hidden. Press Run to restart.');}});
 
-function setTheme(theme){document.documentElement.dataset.theme=theme;$('theme').value=theme;document.querySelector('meta[name="theme-color"]').content=theme==='dark'?'#141b17':'#f1f3ed';try{localStorage.setItem('ev3-line-lab-theme',theme);}catch(e){}scene?.setTheme(theme);}
-$('theme').onchange=e=>setTheme(e.target.value);setTheme(document.documentElement.dataset.theme||'light');
+initThemePicker(palette=>scene.setTheme(palette));
 
 async function handleAudio(s){if(s.runId!==runGeneration||!active)return;try{if(s.action==='stop')speaker.stop();else if(s.action==='volume')speaker.setProgramVolume(s.volume);else if(s.action==='tone')speaker.tone(s.frequency);else if(s.action==='wav')await speaker.wav(s.bytes);}catch(e){$('speaker-state').textContent=e.message;}finally{if(s.action==='wav')post({type:'audio-ended',runId:s.runId,id:s.id});}}
 $('speaker-enable').onclick=()=>speaker.unlock();$('speaker-mute').onclick=()=>{speaker.setMuted(!speaker.muted);$('speaker-mute').textContent=speaker.muted?'Unmute':'Mute';$('speaker-mute').setAttribute('aria-pressed',String(speaker.muted));};$('speaker-volume').oninput=e=>{speaker.setLevel(e.target.value);$('speaker-volume-value').textContent=e.target.value+'%';};

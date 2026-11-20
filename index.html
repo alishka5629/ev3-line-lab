@@ -6,20 +6,21 @@
   <meta name="theme-color" content="#f5f6f2">
   <title>EV3 Line Lab · SITE 1101</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23212a22'/%3E%3Cpath d='M16 42V20h31M16 31h24' fill='none' stroke='%23c0eb80' stroke-width='6'/%3E%3C/svg%3E">
-  <script>
-    try { document.documentElement.dataset.theme = localStorage.getItem('ev3-line-lab-theme') === 'dark' ? 'dark' : 'light'; } catch {}
-  </script>
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem('ev3-line-lab-theme') || 'light'; } catch {}</script>
 </head>
 <body>
   <script src="./physics.js?v=solo-layout"></script>
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="./"><span class="brandmark" aria-hidden="true">E3</span><strong>EV3 Line Lab</strong></a>
-      <span class="course">SITE 1101</span>
-      <nav aria-label="Site controls">
-        <label class="theme-control"><span class="sr-only">Color theme</span><select id="theme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+      <nav class="site-links" aria-label="Site sections">
+        <a href="./" aria-current="page">Simulator</a>
+        <a href="./codes/">Codes</a>
+      </nav>
+      <nav class="site-actions" aria-label="Site controls">
+        <button type="button" class="theme-picker" id="open-themes" aria-haspopup="dialog"><span class="theme-dot"></span><span id="theme-name">Theme</span></button>
         <button id="help">Help</button>
-        <a href="https://github.com/alishka5629/ev3-line-lab" target="_blank" rel="noopener">GitHub ↗</a>
+        <a href="https://github.com/alishka5629/ev3-line-lab" target="_blank" rel="noopener">GitHub</a>
       </nav>
     </div>
   </header>
@@ -44,7 +45,7 @@
       </div>
       <div class="scene" id="scene" aria-label="Robot simulation"></div>
       <div class="runbar">
-        <button id="run" class="primary"><span aria-hidden="true">▶</span> Run</button>
+        <button id="run" class="primary"><span aria-hidden="true" class="play-icon"></span> Run</button>
         <button id="stop">Stop</button>
         <button id="reset">Reset</button>
         <span class="run-status" id="state-label" role="status">Ready to run</span>
