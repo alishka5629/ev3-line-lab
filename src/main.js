@@ -2,6 +2,8 @@ import {initThemePicker} from './themes.js';
 import './style.css';import {Speaker} from './speaker.js';import {tracks} from './tracks.js';import {LabScene} from './scene.js';import {LabScene2D} from './scene2d.js';
 const $=id=>document.getElementById(id);let track=tracks[0],mode='auto',active=false,compiling=false,pose={x:0,y:0,yaw:0},config={},requestId=0,runGeneration=0,workerReady=false,frameReady=false,runtime=$('runtime'),pending=new Map();
 let runV3=false,runResult="";
+let startSide='left';
+const startButtons=[...document.querySelectorAll('[data-start]')];
 let targetVisual=null,shownVisual=null,visualFrame=0,lastVisualAt=0,lastTelemetryAt=0,saveTimer;
 function paintRobot(now){
  visualFrame=0;
@@ -37,8 +39,11 @@ function setLight(light){
  $('light').innerHTML=Math.round(light)+'<small> %</small>';
  $('light-meter').style.width=light+'%';
 }
+function trackForRun(){
+ return track.starts ? {...track,start:track.starts[startSide]} : track;
+}
 function place(where){
- const world=new LabPhysics.Physics(track,readConfig());
+ const world=new LabPhysics.Physics(trackForRun(),readConfig());
  world.place(where);pose={x:world.x,y:world.y,yaw:world.yaw};
  scene?.update(pose,false);post({type:'place',where});
  setLight(world.light());
@@ -49,7 +54,33 @@ function setView(view){
  document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-pressed',String(b.dataset.view===view));});
 }
 function defaultView(){return track.defaultView??(scene instanceof LabScene2D?'top':'perspective');}
-function selectTrack(t){stop();track=t;scene?.configure(readConfig());scene?.setTrack(t,config.lineWidth);setView(defaultView());place('edge');$('track-title').innerHTML=t.name+' <span class="badge">'+t.difficulty+'</span>';$('track-description').textContent=t.desc;document.querySelectorAll('.track').forEach(b=>{b.classList.toggle('active',b.dataset.id===t.id);b.setAttribute('aria-pressed',String(b.dataset.id===t.id));});$('clock').textContent='00:00.0';$('state-label').textContent='Ready to run';}
+function resetStart(){
+ place('edge');
+ $('clock').textContent='00:00.0';
+ $('state-label').textContent='Ready to run';
+ $('gyro').innerHTML=Math.round(pose.yaw*180/Math.PI)+'<small>°</small>';
+ $('distance').textContent='0.00 m';
+ $('left-meter').style.width=$('right-meter').style.width='0%';
+}
+function updateStartControl(){
+ $('start-control').hidden=!track.starts;
+ for(const button of startButtons){
+  const selected=button.dataset.start===startSide;
+  button.classList.toggle('active',selected);
+  button.setAttribute('aria-pressed',String(selected));
+ }
+}
+function selectTrack(t){stop();track=t;scene?.configure(readConfig());scene?.setTrack(t,config.lineWidth);setView(defaultView());resetStart();updateStartControl();$('track-title').innerHTML=t.name+' <span class="badge">'+t.difficulty+'</span>';$('track-description').textContent=t.desc;document.querySelectorAll('.track').forEach(b=>{b.classList.toggle('active',b.dataset.id===t.id);b.setAttribute('aria-pressed',String(b.dataset.id===t.id));});}
+for(const button of startButtons){
+ button.onclick=()=>{
+  if(!track.starts||startSide===button.dataset.start)return;
+  stop();
+  startSide=button.dataset.start;
+  scene?.setTrack(track,config.lineWidth);
+  resetStart();
+  updateStartControl();
+ };
+}
 function previewPath(points){
  return points.map(([x,y],i)=>(i?'L':'M')+(x/22+40).toFixed(1)+','+(35-y/22).toFixed(1)).join(' ');
 }
@@ -96,7 +127,7 @@ async function run(){
   place('edge');
   active=true;
   runV3=prompts;
-  post({type:'run',binary:result.binary,runId:generation,track,config,autoCalibration:mode==='auto'});
+  post({type:'run',binary:result.binary,runId:generation,track:trackForRun(),config,autoCalibration:mode==='auto'});
   log(mode==='auto'?'Program loaded. Detecting calibration and startup steps…':'Program loaded. Follow the prompts on the EV3.');
   $('state-label').textContent=mode==='auto'?'Starting…':'Manual calibration';
  }catch(e){

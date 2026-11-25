@@ -43,6 +43,13 @@
           <button type="button" id="reset-camera">Fit track</button>
         </div>
       </div>
+      <div class="start-control" id="start-control" hidden>
+        <span id="start-label">Start position</span>
+        <div class="segmented" role="group" aria-labelledby="start-label">
+          <button type="button" data-start="left" aria-pressed="true">Left start</button>
+          <button type="button" data-start="right" aria-pressed="false">Right start</button>
+        </div>
+      </div>
       <div class="scene" id="scene" aria-label="Robot simulation"></div>
       <div class="runbar">
         <button id="run" class="primary"><span aria-hidden="true" class="play-icon"></span> Run</button>

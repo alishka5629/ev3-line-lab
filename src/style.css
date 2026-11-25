@@ -121,6 +121,16 @@ nav a { padding: 7px 4px; }
 .segmented button, .mode-switch button { background: transparent; border-color: transparent; }
 .segmented .active, .mode-switch .active { background: var(--panel); border-color: var(--line); box-shadow: var(--shadow); }
 .segmented button, #reset-camera { min-height: 29px; padding: 4px 8px; font-size: .72rem; }
+.start-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 0 13px 8px;
+  color: var(--muted);
+  font-size: .875rem;
+}
+.start-control button { font-size: .875rem; }
 .scene {
   position: relative;
   isolation: isolate;

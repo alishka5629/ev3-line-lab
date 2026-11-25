@@ -42,3 +42,20 @@ test('Lab Bonus preserves its junctions, straight runs, and solid pad',()=>{
  assert.equal(diagonals.length,1);
  assert.equal(track.polygons.length,1);
 });
+test('Lab Bonus right start faces down the right straight and supports calibration',()=>{
+ const track=tracks.find(t=>t.id==='complex');
+ const [junction,end]=track.paths[2].slice(-2);
+ for(const lineWidth of [8,18,50]){
+  const world=new Physics({...track,start:track.starts.right},{lineWidth});
+  assert.equal(world.yaw,-Math.PI/2);
+  for(const [surface,expected] of [['black',8],['white',65],['edge',36.5]]){
+   world.place(surface);
+   const sensor=world.sensor();
+   assert(sensor.y<end[1]&&sensor.y>junction[1]);
+   assert(Math.abs(world.light()-expected)<.01);
+  }
+  assert(Math.abs(world.sensor().x-(end[0]-lineWidth/2))<.01);
+  world.step(100,30,30);
+  assert(Math.abs(world.light()-36.5)<.01);
+ }
+});

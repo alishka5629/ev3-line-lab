@@ -37,12 +37,16 @@ const labCourse = [
  [[177,245],[190,245]]
 ].map(path => path.map(labPoint));
 const labBlackAreas = [[[92,-127],[130,-127],[130,-49],[92,-49]].map(labPoint)];
-const labStart = {point: labPoint([10,325]), heading: Math.PI};
+const labStarts = {
+ left: {point: labPoint([10,325]), heading: Math.PI},
+ // Leave enough straight tape below the cap to sample the light floor beside it.
+ right: {point: labPoint([184,229]), heading: -Math.PI/2},
+};
 export const tracks=[
 {id:'square',name:'Square',tag:'PROJECT',difficulty:'Basic',desc:'Four straights and 90° corners, inspired by the assignment.',paths:[[[-250,-430],[450,-430],[450,430],[-450,430],[-450,-430],[-250,-430]]]},
 {id:'heart',name:'Heart',tag:'PROJECT',difficulty:'Medium',desc:'Smooth curves, a notch and a sharp tip. Based on the assignment example.',paths:[heart]},
 {id:'oval',name:'Warm-up',tag:'START',difficulty:'Easy',desc:'An oval for your first controller adjustments.',paths:[circle(530,340)]},
-{id:'complex',name:'Lab Bonus',tag:'PROJECT',difficulty:'Hard',desc:'Top-down lab layout. Start at the right end of the upper straight, facing left. Dimensions are approximate.',paths:labCourse,polygons:labBlackAreas,start:labStart,defaultView:'top'},
+{id:'complex',name:'Lab Bonus',tag:'PROJECT',difficulty:'Hard',desc:'Left start faces along the upper straight. Right start faces down the right-hand straight.',paths:labCourse,polygons:labBlackAreas,start:labStarts.left,starts:labStarts,defaultView:'top'},
 {id:'chicane',name:'Chicane',tag:'CHALLENGE',difficulty:'Hard',desc:'Tight corners to test speed control and line recovery.',paths:[[[-500,-400],[500,-400],[500,-100],[170,-100],[170,100],[500,100],[500,400],[-500,400],[-500,100],[-170,100],[-170,-100],[-500,-100],[-500,-400]]]},
 {id:'eight',name:'Figure eight',tag:'CHALLENGE',difficulty:'Junction',desc:'A crossing is ambiguous to one sensor. Test your route selection logic.',paths:[Array.from({length:241},(_,i)=>{let t=i/240*2*Math.PI;return [580*Math.sin(t),370*Math.sin(2*t)]})]},
 {id:'baku',name:'Baku City Circuit',tag:'BAKU',difficulty:'Hard',desc:'Baku City Circuit outline traced from your reference: the long main straight, 90° city corners and tight old-town section. Uniformly scaled to the robot mat; flat, without elevation.',paths:[bakuCircuit]},
