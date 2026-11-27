@@ -39,3 +39,6 @@
   .source-toolbar{padding-inline:9px;gap:7px;font-size:.64rem}
   #source-scroll{padding-inline:7px}
 }
+.program-nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
+.program-nav a{padding:8px 11px;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:.88rem;font-weight:600}
+.program-nav a:hover,.program-nav a[aria-current]{background:var(--select);color:var(--ink)}

@@ -1,9 +1,11 @@
 import './style.css';
 import './codes.css';
 import {initThemePicker} from './themes.js';
-import {sections,sourceLines} from './code-sections.js';
+import {sections as smoothSections,complexSections,sourceLines} from './code-sections.js';
 
 initThemePicker();
+
+const sections=document.body.dataset.program==='complex'?complexSections:smoothSections;
 
 const $=id=>document.getElementById(id);
 const keywords=new Set(['const','let','function','return','if','else','while','for','true','false','number','boolean','string']);
@@ -101,7 +103,7 @@ $('copy-code').onclick=async()=>{
   copyTimer=setTimeout(()=>$('copy-code').textContent='Copy code',1800);
 };
 fromHash();
-fetch('../programs/smooth-square.ts').then(response=>{
+fetch(document.body.dataset.source).then(response=>{
   if(!response.ok)throw Error('source');
   return response.text();
 }).then(file=>{

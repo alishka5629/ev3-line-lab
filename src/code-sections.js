@@ -18,3 +18,20 @@ export const sections = [
 export function sourceLines(source, section) {
   return source.replace(/\r?\n$/, '').split(/\r?\n/).slice(section.from - 1,section.to);
 }
+
+export const complexSections = [
+  {id:'setup', title:'Robot setup', from:1, to:39,
+    description:'Motors B and C drive the wheels. Motor A moves the marker. The colour sensor reads the floor, and the gyro measures turns.'},
+  {id:'sensor', title:'Reading the edge', from:40, to:64,
+    description:'The code averages light readings for calibration and checks when the sensor is over the tape or the floor.'},
+  {id:'start', title:'Calibrate and start', from:65, to:126,
+    description:'Calibrate the gyro, then measure the floor and tape. Use LEFT or RIGHT to choose which edge to follow, and press ENTER to start.'},
+  {id:'marker', title:'Marker control', from:127, to:150,
+    description:'Motor A lowers the marker before the run and lifts it when the run ends.'},
+  {id:'steering', title:'Steering and speed', from:227, to:246,
+    description:'The program smooths the light reading and compares it with the target. It turns by changing the wheel speeds and slows down for sharper turns.'},
+  {id:'recovery', title:'Recovering the line', from:151, to:188,
+    description:'If the sensor sees the floor for over 350 ms, the robot turns toward the tape, then checks the other side. The gyro limits each turn.'},
+  {id:'full', title:'Full source', from:1,
+    description:'The complete MakeCode JavaScript program for the LEGO EV3.'},
+];
